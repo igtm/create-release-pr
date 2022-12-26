@@ -1,6 +1,6 @@
 use clap::Parser;
 use octocrab::{Octocrab, params};
-use std::{process::Command, ops::Deref};
+use std::{process::Command};
 use once_cell::sync::Lazy;
 use std::{error::Error};
 use regex::Regex;
@@ -40,13 +40,11 @@ async fn main()-> Result<(), Box<dyn Error>> {
   for pr in ret.iter_mut() {
     let res = get_github_client().pulls(owner.as_str(), repo.as_str()).get(pr.id).await?;
     if let Some(user) = res.user {
-      // ret.push(PR { id: pr.id, date: pr.date, username: user.login, hash: pr.hash, children: vec![] })
       pr.username = user.login;
     }
     for p in pr.children.iter_mut() {
       let res = get_github_client().pulls(owner.as_str(), repo.as_str()).get(p.id).await?;
       if let Some(user) = res.user {
-        // ret.push(PR { id: p.id, date: p.date, username: user.login, hash: p.hash, children: vec![] });
         p.username = user.login;
       }
     }
@@ -151,7 +149,7 @@ fn get_diff_pr(base: &str, head: &str) -> Vec<PR> {
     let line_a = a.split_whitespace().collect::<Vec<&str>>();
     let mut found = false;
     for b in &merges_first_parent_list {
-      if a == b.deref() {
+      if a == b.to_owned() {
         found = true;
         break;
       }
