@@ -207,6 +207,12 @@ fn get_diff_pr(base: &str, head: &str) -> Vec<PR> {
     }
   }
 
+  // filter
+  prs.retain(|x| x.id != 0);
+  for pr in prs.iter_mut() {
+    pr.children.retain(|x| x.id != 0);
+  }
+
   return prs;
 }
 
