@@ -28,4 +28,3 @@ Options:
 
 - [x] nested pr comment
 - [ ] auto merge
-  > > > > > > > f562acf (initial commit)
