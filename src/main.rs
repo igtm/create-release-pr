@@ -34,24 +34,29 @@ async fn main()-> Result<(), Box<dyn Error>> {
   let head = args.head;
   let base = args.base;
   let (owner, repo) = get_repo_name();
+  let owner_str = owner.as_str();
+  let repo_str = repo.as_str();
   println!("get_repo_name()");
 
   // Gitub PR
-  let mut ret: Vec<PR> = get_diff_pr(base.as_str(), head.as_str());
+  let mut ret: Vec<PR> = get_diff_pr(owner_str, head.as_str());
   println!("get_diff_pr()");
 
   for pr in ret.iter_mut() {
-    let res = get_github_client().pulls(owner.as_str(), repo.as_str()).get(pr.id).await?;
+    let res = get_github_client().pulls(owner_str, repo_str).get(pr.id).await?;
+    println!("ret.iter_mut() get");
     if let Some(user) = res.user {
       pr.username = user.login;
     }
     for p in pr.children.iter_mut() {
-      let res = get_github_client().pulls(owner.as_str(), repo.as_str()).get(p.id).await?;
+      let res = get_github_client().pulls(owner_str, repo_str).get(p.id).await?;
+      println!("children.iter_mut() get");
       if let Some(user) = res.user {
         p.username = user.login;
       }
     }
   }
+  println!("ret.iter_mut()");
 
   let mut body = "".to_owned();
   for pr in ret {
@@ -60,9 +65,10 @@ async fn main()-> Result<(), Box<dyn Error>> {
       body += &format!("  - [ ] #{} @{} {}\n", p.id, p.username, p.date);
     }
   }
+  println!("body");
 
   // List Github PR
-  let list_pr = get_github_client().pulls(owner.as_str(), repo.as_str())
+  let list_pr = get_github_client().pulls(owner_str, repo_str)
     .list()
     // Optional Parameters
     .state(params::State::Open)
@@ -75,6 +81,8 @@ async fn main()-> Result<(), Box<dyn Error>> {
     .send()
     .await?
     .take_items();
+
+  println!("list()");
   
   if list_pr.len() > 0 {
     // keep checked task list
@@ -88,7 +96,7 @@ async fn main()-> Result<(), Box<dyn Error>> {
     }
     // Update Github PR
     get_github_client()
-      .pulls(owner.as_str(), repo.as_str())
+      .pulls(owner_str, repo_str)
       .update(list_pr[0].number)
       .body(body)
       .send()
@@ -101,7 +109,7 @@ async fn main()-> Result<(), Box<dyn Error>> {
     // Create Github PR
     let title = format!("{} from {}", base.as_str(), &head.as_str());
     let ret = get_github_client()
-      .pulls(owner, repo)
+      .pulls(owner_str, repo_str)
       .create(title, head, base.as_str())
       .body(body)
       .send()
