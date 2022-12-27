@@ -44,14 +44,18 @@ async fn main()-> Result<(), Box<dyn Error>> {
   let mut ret: Vec<PR> = get_diff_pr(base_str, head_str);
   println!("get_diff_pr()");
 
+  // Github Client
+  let github_client = get_github_client();
+  println!("get_github_client()");
+
   for pr in ret.iter_mut() {
-    let res = get_github_client().pulls(owner_str, repo_str).get(pr.id).await?;
+    let res = github_client.pulls(owner_str, repo_str).get(pr.id).await?;
     println!("ret.iter_mut() get");
     if let Some(user) = res.user {
       pr.username = user.login;
     }
     for p in pr.children.iter_mut() {
-      let res = get_github_client().pulls(owner_str, repo_str).get(p.id).await?;
+      let res = github_client.pulls(owner_str, repo_str).get(p.id).await?;
       println!("children.iter_mut() get");
       if let Some(user) = res.user {
         p.username = user.login;
@@ -70,7 +74,7 @@ async fn main()-> Result<(), Box<dyn Error>> {
   println!("body");
 
   // List Github PR
-  let list_pr = get_github_client().pulls(owner_str, repo_str)
+  let list_pr = github_client.pulls(owner_str, repo_str)
     .list()
     // Optional Parameters
     .state(params::State::Open)
@@ -97,7 +101,7 @@ async fn main()-> Result<(), Box<dyn Error>> {
       }
     }
     // Update Github PR
-    get_github_client()
+    github_client
       .pulls(owner_str, repo_str)
       .update(list_pr[0].number)
       .body(body)
@@ -110,7 +114,7 @@ async fn main()-> Result<(), Box<dyn Error>> {
   } else {
     // Create Github PR
     let title = format!("{} from {}", base_str, head_str);
-    let ret = get_github_client()
+    let ret = github_client
       .pulls(owner_str, repo_str)
       .create(title, head_str, base_str)
       .body(body)
