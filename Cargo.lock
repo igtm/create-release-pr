@@ -771,8 +771,8 @@ dependencies = [
 
 [[package]]
 name = "octocrab"
-version = "0.17.0"
-source = "git+https://github.com/igtm/octocrab?branch=feature/update-pull-request#3ddac9538cb20c7bfc7b07d0f4590b287abab498"
+version = "0.18.0"
+source = "git+https://github.com/igtm/octocrab?branch=feature/avoid-build-segfault#33488c0f05d72afb7f253e66a8cd423c5ed20b74"
 dependencies = [
  "arc-swap",
  "async-trait",
