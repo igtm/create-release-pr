@@ -259,5 +259,14 @@ fn get_repo_name() -> (String, String) {
 
 fn get_github_client() -> Octocrab {
   let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN env variable is required");
-  return octocrab::OctocrabBuilder::new().personal_token(token).build().unwrap();
+  println!("z");
+  let a = octocrab::OctocrabBuilder::new();
+  println!("a");
+  let b = a.personal_token(token);
+  println!("b");
+  let c = b.build();
+  println!("c");
+  let d = c.unwrap();
+  println!("d");
+  return d;
 }
