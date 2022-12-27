@@ -34,12 +34,14 @@ async fn main()-> Result<(), Box<dyn Error>> {
   let head = args.head;
   let base = args.base;
   let (owner, repo) = get_repo_name();
+  let head_str = head.as_str();
+  let base_str = base.as_str();
   let owner_str = owner.as_str();
   let repo_str = repo.as_str();
   println!("get_repo_name()");
 
   // Gitub PR
-  let mut ret: Vec<PR> = get_diff_pr(owner_str, head.as_str());
+  let mut ret: Vec<PR> = get_diff_pr(base_str, head_str);
   println!("get_diff_pr()");
 
   for pr in ret.iter_mut() {
@@ -72,8 +74,8 @@ async fn main()-> Result<(), Box<dyn Error>> {
     .list()
     // Optional Parameters
     .state(params::State::Open)
-    .head(head.as_str())
-    .base(base.as_str())
+    .head(head_str)
+    .base(base_str)
     .sort(params::pulls::Sort::Created)
     .direction(params::Direction::Descending)
     .per_page(1)
@@ -107,10 +109,10 @@ async fn main()-> Result<(), Box<dyn Error>> {
     }
   } else {
     // Create Github PR
-    let title = format!("{} from {}", base.as_str(), &head.as_str());
+    let title = format!("{} from {}", base_str, head_str);
     let ret = get_github_client()
       .pulls(owner_str, repo_str)
-      .create(title, head, base.as_str())
+      .create(title, head_str, base_str)
       .body(body)
       .send()
       .await?;
