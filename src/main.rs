@@ -27,15 +27,18 @@ struct Args {
 
 #[tokio::main]
 async fn main()-> Result<(), Box<dyn Error>> {
+  println!("Args::parse()");
   let args = Args::parse();
 
   // Variables
   let head = args.head;
   let base = args.base;
   let (owner, repo) = get_repo_name();
+  println!("get_repo_name()");
 
   // Gitub PR
   let mut ret: Vec<PR> = get_diff_pr(base.as_str(), head.as_str());
+  println!("get_diff_pr()");
 
   for pr in ret.iter_mut() {
     let res = get_github_client().pulls(owner.as_str(), repo.as_str()).get(pr.id).await?;
@@ -225,7 +228,8 @@ fn get_repo_name() -> (String, String) {
     .arg("origin")
     .output()
     .expect("failed to execute process");
-  
+  println!("Command::new()");
+
   let out = std::str::from_utf8(&url.stdout).unwrap();
   let s1 = out.split(":").collect::<Vec<&str>>();
   if s1.len() < 2 {
