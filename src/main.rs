@@ -80,9 +80,9 @@ async fn main()-> Result<(), Box<dyn Error>> {
 
   let mut body = "".to_owned();
   for pr in ret {
-    body += &format!("- [ ] #{} @{} {}\n", pr.id, pr.username, pr.date);
+    body += &format!("- [ ] #{} @{} `{}`\n", pr.id, pr.username, pr.date);
     for p in pr.children {
-      body += &format!("  - [ ] #{} @{} {}\n", p.id, p.username, p.date);
+      body += &format!("  - [ ] #{} @{} `{}`\n", p.id, p.username, p.date);
     }
   }
 
