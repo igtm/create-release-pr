@@ -27,7 +27,6 @@ struct Args {
 
 #[tokio::main]
 async fn main()-> Result<(), Box<dyn Error>> {
-  println!("Args::parse()");
   let args = Args::parse();
 
   // Variables
@@ -38,31 +37,25 @@ async fn main()-> Result<(), Box<dyn Error>> {
   let base_str = base.as_str();
   let owner_str = owner.as_str();
   let repo_str = repo.as_str();
-  println!("get_repo_name()");
 
   // Gitub PR
   let mut ret: Vec<PR> = get_diff_pr(base_str, head_str);
-  println!("get_diff_pr()");
 
   // Github Client
   let github_client = get_github_client();
-  println!("get_github_client()");
 
   for pr in ret.iter_mut() {
     let res = github_client.pulls(owner_str, repo_str).get(pr.id).await?;
-    println!("ret.iter_mut() get");
     if let Some(user) = res.user {
       pr.username = user.login;
     }
     for p in pr.children.iter_mut() {
       let res = github_client.pulls(owner_str, repo_str).get(p.id).await?;
-      println!("children.iter_mut() get");
       if let Some(user) = res.user {
         p.username = user.login;
       }
     }
   }
-  println!("ret.iter_mut()");
 
   let mut body = "".to_owned();
   for pr in ret {
@@ -71,7 +64,6 @@ async fn main()-> Result<(), Box<dyn Error>> {
       body += &format!("  - [ ] #{} @{} {}\n", p.id, p.username, p.date);
     }
   }
-  println!("body");
 
   // List Github PR
   let list_pr = github_client.pulls(owner_str, repo_str)
@@ -88,8 +80,6 @@ async fn main()-> Result<(), Box<dyn Error>> {
     .await?
     .take_items();
 
-  println!("list()");
-  
   if list_pr.len() > 0 {
     // keep checked task list
     if let Some(now_body) = &list_pr[0].body {
@@ -242,7 +232,6 @@ fn get_repo_name() -> (String, String) {
     .arg("origin")
     .output()
     .expect("failed to execute process");
-  println!("Command::new()");
 
   let out = std::str::from_utf8(&url.stdout).unwrap();
   let s1 = out.split(":").collect::<Vec<&str>>();
@@ -259,14 +248,8 @@ fn get_repo_name() -> (String, String) {
 
 fn get_github_client() -> Octocrab {
   let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN env variable is required");
-  println!("z");
-  let a = octocrab::OctocrabBuilder::new();
-  println!("a");
-  let b = a.personal_token(token);
-  println!("b");
-  let c = b.build();
-  println!("c");
-  let d = c.unwrap();
-  println!("d");
-  return d;
+  return octocrab::OctocrabBuilder::new()
+    .personal_token(token)
+    .build()
+    .unwrap();
 }

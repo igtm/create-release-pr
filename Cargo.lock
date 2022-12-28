@@ -721,7 +721,8 @@ dependencies = [
 [[package]]
 name = "octocrab"
 version = "0.18.0"
-source = "git+https://github.com/igtm/octocrab?branch=feature/avoid-build-segfault#33488c0f05d72afb7f253e66a8cd423c5ed20b74"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b4c8222d7c7c3a1a14b76cd365b220f738dd789fdbf52dd3eb71488290e52b7"
 dependencies = [
  "arc-swap",
  "async-trait",
