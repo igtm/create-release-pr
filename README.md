@@ -28,7 +28,6 @@ Options:
   -V, --version       Print version information
 ```
 
-# TODO
+# Useful tool for CI
 
-- [x] nested pr comment
-- [ ] auto merge
+- [igtm/create-release-pr-action](https://github.com/igtm/create-release-pr-action)
