@@ -17,12 +17,28 @@ static RE_BODY_TASK_LIST_CHECKED: Lazy<Regex> = Lazy::new(|| {
 #[command(author, version, about, long_about = None)]
 struct Args {
    /// base branch of pull request
-   #[arg(long)]
+   #[arg(short, long)]
    base: String,
 
    /// head branch of pull request
-   #[arg(long)]
+   #[arg(short = 'H', long)]
    head: String,
+
+   /// merge a pull request
+   #[arg(long, default_value_t = false)]
+   merge: bool,
+
+   /// merge a pull request with squash
+   #[arg(long, default_value_t = false)]
+   merge_squash: bool,
+
+   /// merge a pull request with rebase
+   #[arg(long, default_value_t = false)]
+   merge_rebase: bool,
+
+   /// no remote fetch before executing
+   #[arg(long, default_value_t = false)]
+   no_fetch: bool,
 }
 
 #[tokio::main]
@@ -37,6 +53,11 @@ async fn main()-> Result<(), Box<dyn Error>> {
   let base_str = base.as_str();
   let owner_str = owner.as_str();
   let repo_str = repo.as_str();
+
+  // fetch remote
+  if !args.no_fetch {
+    git_fetch_all()
+  }
 
   // Gitub PR
   let mut ret: Vec<PR> = get_diff_pr(base_str, head_str);
@@ -80,7 +101,9 @@ async fn main()-> Result<(), Box<dyn Error>> {
     .await?
     .take_items();
 
+  let mut target_id: u64 = 0;
   if list_pr.len() > 0 {
+    target_id = list_pr[0].number;
     // keep checked task list
     if let Some(now_body) = &list_pr[0].body {
       for line in now_body.split("\n") {
@@ -114,8 +137,25 @@ async fn main()-> Result<(), Box<dyn Error>> {
     if let Some(html_url) = &ret.html_url {
       println!("new PullRequest was successfully created: {}", html_url.as_str());
     }
+    target_id = ret.number;
   }
 
+  if args.merge {
+    let mut method = params::pulls::MergeMethod::Merge;
+    if args.merge_rebase {
+      method = params::pulls::MergeMethod::Rebase;
+    }
+    else if args.merge_squash {
+      method = params::pulls::MergeMethod::Squash;
+    }
+    github_client
+      .pulls(owner_str, repo_str)
+      .merge(target_id)
+      .method(method)
+      .send().await?;
+
+      println!("  and successfully merged ({:?})", method);
+  }
 
   Ok(())
 
@@ -244,6 +284,15 @@ fn get_repo_name() -> (String, String) {
     panic!("git remote url is invalid");
   }
   return (names[0].to_owned(), names[1].to_owned());
+}
+
+fn git_fetch_all() {
+  // fetch remote
+  Command::new("git")
+    .arg("fetch")
+    .arg("--all")
+    .output()
+    .expect("failed to execute process");
 }
 
 fn get_github_client() -> Octocrab {
