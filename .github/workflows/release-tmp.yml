@@ -35,10 +35,10 @@ jobs:
         id: compress
         with:
           command: c
-          cwd: ./test
+          cwd: ./target/${{ matrix.target }}/release/
           files: |
-            target/${{ matrix.target }}/release/create-release-pr
-          outPath: target/${{ matrix.target }}/release/create-release-pr.tar.gz
+            create-release-pr
+          outPath: create-release-pr.tar.gz
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
