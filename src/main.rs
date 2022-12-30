@@ -100,15 +100,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .await?
         .take_items();
 
-    let mut target_id: u64 = 0;
-    if list_pr.len() > 0 {
+    let target_id: u64;
+    if !list_pr.is_empty() {
         target_id = list_pr[0].number;
         // keep checked task list
         if let Some(now_body) = &list_pr[0].body {
-            for line in now_body.split("\n") {
-                if RE_BODY_TASK_LIST_CHECKED.is_match(&line) {
+            for line in now_body.split('\n') {
+                if RE_BODY_TASK_LIST_CHECKED.is_match(line) {
                     let unchecked_line = line.replace("- [x] #", "- [ ] #");
-                    body = body.replace(&unchecked_line, &line);
+                    body = body.replace(&unchecked_line, line);
                 }
             }
         }
@@ -198,17 +198,17 @@ fn get_diff_pr(base: &str, head: &str) -> Vec<PR> {
 
     let merges_first_parent_list = std::str::from_utf8(&merges_first_parent.stdout)
         .unwrap()
-        .split_terminator("\n")
+        .split_terminator('\n')
         .collect::<Vec<&str>>();
     let merges_all_list = std::str::from_utf8(&merges_all.stdout)
         .unwrap()
-        .split_terminator("\n")
+        .split_terminator('\n')
         .collect::<Vec<&str>>();
     for a in merges_all_list {
         let line_a = a.split_whitespace().collect::<Vec<&str>>();
         let mut found = false;
         for b in &merges_first_parent_list {
-            if a == b.to_owned() {
+            if a == *b {
                 found = true;
                 break;
             }
@@ -217,29 +217,27 @@ fn get_diff_pr(base: &str, head: &str) -> Vec<PR> {
             prs.push(PR {
                 hash: line_a[1].to_owned(),
                 id: 0,
-                date: line_a[2].to_owned().to_owned().replace("'", ""),
+                date: line_a[2].to_owned().to_owned().replace('\'', ""),
+                username: "".to_owned(),
+                children: vec![],
+            });
+        } else if !prs.is_empty() {
+            let len = prs.len();
+            prs[len - 1].children.push(PR {
+                hash: line_a[1].to_owned(),
+                id: 0,
+                date: line_a[2].to_owned().to_owned().replace('\'', ""),
                 username: "".to_owned(),
                 children: vec![],
             });
         } else {
-            if prs.len() > 0 {
-                let len = prs.len();
-                prs[len - 1].children.push(PR {
-                    hash: line_a[1].to_owned(),
-                    id: 0,
-                    date: line_a[2].to_owned().to_owned().replace("'", ""),
-                    username: "".to_owned(),
-                    children: vec![],
-                });
-            } else {
-                prs.push(PR {
-                    hash: line_a[1].to_owned(),
-                    id: 0,
-                    date: line_a[2].to_owned().to_owned().replace("'", ""),
-                    username: "".to_owned(),
-                    children: vec![],
-                });
-            }
+            prs.push(PR {
+                hash: line_a[1].to_owned(),
+                id: 0,
+                date: line_a[2].to_owned().to_owned().replace('\'', ""),
+                username: "".to_owned(),
+                children: vec![],
+            });
         }
     }
 
@@ -253,18 +251,18 @@ fn get_diff_pr(base: &str, head: &str) -> Vec<PR> {
 
     for a in std::str::from_utf8(&ls_remotes.stdout)
         .unwrap()
-        .split_terminator("\n")
+        .split_terminator('\n')
         .collect::<Vec<&str>>()
     {
-        let parts = RE_GIT_LS_REMOTE.captures(&a).unwrap();
+        let parts = RE_GIT_LS_REMOTE.captures(a).unwrap();
         for pr in prs.iter_mut() {
-            if &parts["hash"] == pr.hash.to_owned() {
+            if parts["hash"] == pr.hash {
                 pr.id = parts["prid"].parse().unwrap();
                 break;
             }
 
             for pr in pr.children.iter_mut() {
-                if &parts["hash"] == pr.hash.to_owned() {
+                if parts["hash"] == pr.hash {
                     pr.id = parts["prid"].parse().unwrap();
                 }
             }
@@ -277,7 +275,7 @@ fn get_diff_pr(base: &str, head: &str) -> Vec<PR> {
         pr.children.retain(|x| x.id != 0);
     }
 
-    return prs;
+    prs
 }
 
 fn get_repo_name() -> (String, String) {
@@ -290,16 +288,17 @@ fn get_repo_name() -> (String, String) {
         .expect("failed to execute process");
 
     let out = std::str::from_utf8(&url.stdout).unwrap();
-    let s1 = out.split(":").collect::<Vec<&str>>();
+    let s1 = out.split(':').collect::<Vec<&str>>();
     if s1.len() < 2 {
         panic!("git remote url is invalid");
     }
     let s2 = s1[1].replace("//github.com/", "").replace(".git", "");
-    let names = s2.split("/").collect::<Vec<&str>>();
+    let names = s2.split('/').collect::<Vec<&str>>();
     if s2.len() < 2 {
         panic!("git remote url is invalid");
     }
-    return (names[0].to_owned(), names[1].to_owned());
+
+    (names[0].to_owned(), names[1].to_owned())
 }
 
 fn git_fetch_all() {
@@ -313,8 +312,9 @@ fn git_fetch_all() {
 
 fn get_github_client() -> Octocrab {
     let token = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN env variable is required");
-    return octocrab::OctocrabBuilder::new()
+
+    octocrab::OctocrabBuilder::new()
         .personal_token(token)
         .build()
-        .unwrap();
+        .unwrap()
 }
