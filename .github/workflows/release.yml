@@ -1,8 +1,7 @@
 on: 
   push:
     tags:
-      # - "v*.*.*"
-      - "tmp"
+      - "v*.*.*"
 
 jobs:
   release:
