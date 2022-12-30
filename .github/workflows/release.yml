@@ -27,3 +27,20 @@ jobs:
         with:
           RUSTTARGET: ${{ matrix.target }}
           ARCHIVE_TYPES: ${{ matrix.archive }}
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-apple-darwin
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target aarch64-apple-darwin
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.event.pull_request.body }}
+          tag_name: ${{ github.event.pull_request.title }}
+          generate_release_notes: true
+          files: target/hoge.jar
