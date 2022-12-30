@@ -26,7 +26,7 @@ get_arch() {
         #     echo "386"
         # ;;
         "aarch64" | "arm64" | "arm")
-            echo "arm64"
+            echo "aarch64"
         ;;
         *)
             echo ${NIL}
@@ -45,7 +45,7 @@ get_os(){
             echo "pc-windows-gnu"
         ;;
         "linux")
-            echo "unknown-linux-musl"
+            echo "unknown-linux-gnu"
         ;;
         *)
             echo ${NIL}
