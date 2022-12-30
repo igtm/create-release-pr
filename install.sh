@@ -42,7 +42,7 @@ get_os(){
             echo "apple-darwin"
         ;;
         "windows")
-            echo "pc-windows-gnu"
+            echo "pc-windows-msvc"
         ;;
         "linux")
             echo "unknown-linux-gnu"
