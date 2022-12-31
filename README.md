@@ -12,6 +12,12 @@ PullRequest generation tool for Git Flow
 sudo curl -sfL https://raw.githubusercontent.com/igtm/create-release-pr/master/install.sh | sudo sh -s -- -b=/usr/local/bin
 ```
 
+if you want to download old version, pass `-v` argument.
+
+```sh
+sudo curl -sfL https://raw.githubusercontent.com/igtm/create-release-pr/master/install.sh | sudo sh -s -- -b=/usr/local/bin -v=v0.0.2
+```
+
 # Usage
 
 ```
