@@ -90,7 +90,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .list()
         // Optional Parameters
         .state(params::State::Open)
-        .head(head_str)
+        .head(format!("{}:{}", owner, head_str))
         .base(base_str)
         .sort(params::pulls::Sort::Created)
         .direction(params::Direction::Descending)
