@@ -296,7 +296,7 @@ fn get_merge_base(feature_hash: &str, base: &str) -> String {
         .expect("failed to execute process");
     let out = std::str::from_utf8(&merge_base.stdout).unwrap();
     out.strip_suffix("\r\n")
-        .or(out.strip_suffix("\n"))
+        .or_else(|| out.strip_suffix('\n'))
         .unwrap_or(out)
         .to_owned()
 }
