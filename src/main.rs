@@ -257,12 +257,20 @@ fn get_diff_pr(base: &str, head: &str) -> Vec<PR> {
         let parts = RE_GIT_LS_REMOTE.captures(a).unwrap();
         for pr in prs.iter_mut() {
             if parts["hash"] == pr.hash {
+                if get_merge_base(&pr.hash, base).eq(&pr.hash) {
+                    // already merged
+                    break;
+                }
                 pr.id = parts["prid"].parse().unwrap();
                 break;
             }
 
             for pr in pr.children.iter_mut() {
                 if parts["hash"] == pr.hash {
+                    if get_merge_base(&pr.hash, base).eq(&pr.hash) {
+                        // already merged
+                        break;
+                    }
                     pr.id = parts["prid"].parse().unwrap();
                 }
             }
@@ -276,6 +284,21 @@ fn get_diff_pr(base: &str, head: &str) -> Vec<PR> {
     }
 
     prs
+}
+
+fn get_merge_base(feature_hash: &str, base: &str) -> String {
+    // get merge base
+    let merge_base = Command::new("git")
+        .arg("merge-base")
+        .arg(feature_hash)
+        .arg(format!("origin/{}", base))
+        .output()
+        .expect("failed to execute process");
+    let out = std::str::from_utf8(&merge_base.stdout).unwrap();
+    out.strip_suffix("\r\n")
+        .or(out.strip_suffix("\n"))
+        .unwrap_or(out)
+        .to_owned()
 }
 
 fn get_repo_name() -> (String, String) {
